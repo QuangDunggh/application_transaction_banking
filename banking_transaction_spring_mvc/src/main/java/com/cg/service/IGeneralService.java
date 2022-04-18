@@ -12,4 +12,6 @@ public interface IGeneralService<T> {
     void save(T t);
 
     void remove(Long id);
+
+    boolean existById(Long id);
 }

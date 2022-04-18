@@ -4,18 +4,16 @@ import com.cg.model.Customer;
 import com.cg.model.Deposit;
 import com.cg.service.customer.ICustomerService;
 import com.cg.service.deposit.IDepositService;
+import com.cg.utils.ValidateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.Optional;
 
-import static javafx.scene.input.KeyCode.L;
 
 @Controller
 @RequestMapping("/deposit")
@@ -40,18 +38,26 @@ public class DepositController {
         return modelAndView;
     }
 
-    @PostMapping("/save")
-    private ModelAndView saveDeposit(@Validated @ModelAttribute("deposit") Deposit deposit, BindingResult result) {
+    @PostMapping("/saveDeposit/{id}")
+    private ModelAndView saveDeposit(@Validated @PathVariable("id") Long id,@RequestParam("transactionAmount") String transactionAmount,
+                                     @ModelAttribute("deposit") Deposit deposit, BindingResult result) {
         ModelAndView modelAndView = new ModelAndView("/deposit/deposit");
-        System.out.println(deposit.getTransaction_amount());
-        System.out.println(deposit.getId());
+        deposit = depositService.findById(id).get();
+//        modelAndView.addObject("deposit",deposit);
+
         if (result.hasFieldErrors()) {
             modelAndView.addObject("deposit",deposit);
             return modelAndView;
         }
-        if (deposit.getTransaction_amount() <= 1000L) {
+        if(!ValidateUtils.isNumber(transactionAmount)){
             modelAndView.addObject("deposit",deposit);
-            System.out.println(deposit.getTransaction_amount());
+            modelAndView.addObject("message","This field must be number");
+            return modelAndView;
+        }
+        deposit.setTransaction_amount(Long.valueOf(transactionAmount));
+//        deposit.setTransaction_amount(deposit.getTransaction_amount());
+        if (deposit.getTransaction_amount() <= 1000) {
+            modelAndView.addObject("deposit",deposit);
             modelAndView.addObject("message", "Transaction can not smaller 1000");
             return modelAndView;
         } else if (deposit.getTransaction_amount() % 10 != 0) {
@@ -59,14 +65,20 @@ public class DepositController {
             modelAndView.addObject("message", "Transaction must be a multiple of 10");
             return modelAndView;
         } else {
-            Optional<Customer> customer = customerService.findById(deposit.getCustomerDeposit().getId());
-            Long balance_1 = customer.get().getBalance();
-            Long balance_2 = balance_1 + deposit.getTransaction_amount();
-            customer.get().setBalance(balance_2);
+           Customer customer = customerService.findById(deposit.getCustomerDeposit().getId()).get();
+            Long newBalance = customer.getBalance() + deposit.getTransaction_amount();
+            customer.setBalance(newBalance);
+            deposit.getCustomerDeposit().setBalance(newBalance);
+            customerService.save(customer);
             deposit.setUpdate_at(Date.valueOf(java.time.LocalDate.now()));
-            customerService.save(customer.get());
+            depositService.save(deposit);
+            deposit.setId(null);
+            deposit.setTransaction_amount(0L);
+            deposit.setCreate_at(Date.valueOf(java.time.LocalDate.now()));
             depositService.save(deposit);
             modelAndView.addObject("deposit",deposit);
+            modelAndView.addObject("message","Deposit successfully!");
+//            modelAndView.setViewName("redirect:/customer");
             return modelAndView;
         }
 

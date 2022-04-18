@@ -35,4 +35,9 @@ public class DepositService implements IDepositService{
     public void remove(Long id) {
         depositRepository.deleteById(id);
     }
+
+    @Override
+    public boolean existById(Long id) {
+        return depositRepository.existsById(id);
+    }
 }

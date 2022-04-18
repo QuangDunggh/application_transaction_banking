@@ -8,7 +8,7 @@
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link rel="stylesheet" href="/resources/css/font-awesome/css/all.css">
     <link rel="stylesheet" href="/resources/css/styles.css">
-    <title>Create new customer</title>
+    <title>Deposit</title>
 </head>
 <body>
 <div class="container">
@@ -18,7 +18,7 @@
                 <h1>Deposit</h1>
             </div>
             <div class="col-sm-7">
-                <a th:href="@{/customer}" class="btn btn-outline-light">
+                <a th:href="@{/customer/deposit/__${deposit.getId()}__}" class="btn btn-outline-light">
                     <i class="fa-solid fa-bars"></i>
                     <span>List of customers</span>
                 </a>
@@ -26,7 +26,7 @@
         </div>
     </div>
     <div>
-        <form th:action="@{/deposit/save}" method="post" th:object="${deposit}">
+        <form th:action="@{/deposit/saveDeposit/__${deposit.getId()}__}" method="post" th:object="${deposit}">
             <input type="hidden" th:value="${deposit.getId()}">
             <div class="row mt-3">
                 <div class="col-md-6 mb-3">
@@ -45,7 +45,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label  class="form-label">Transaction amount</label>
-                    <input type="text" class="form-control" id="address" th:value="*{transaction_amount}">
+                    <input type="text" class="form-control" id="address" name="transactionAmount" th:value="*{transaction_amount}">
                 </div>
             </div>
 
